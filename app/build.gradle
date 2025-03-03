@@ -1,0 +1,58 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'org.Finite.microasmeditor'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "org.Finite.microasmeditor"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        viewBinding true
+    }
+    dependenciesInfo {
+        includeInApk true
+        includeInBundle true
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+    implementation ('org.Finite:MASM:0.01') {
+        exclude group: 'org.jcommander', module: 'jcommander'
+        exclude group: 'com.beust', module: 'jcommander'
+        exclude group: 'ch.qos.logback', module: 'logback-classic' // Exclude logback-classic
+        exclude group: 'org.slf4j', module: 'slf4j-api' // Exclude slf4j-api
+        exclude group: 'ch.qos.logback', module: 'logback-core' // Exclude logback-core
+    }
+    implementation 'com.beust:jcommander:1.82'  // Only include one version
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
