@@ -10,4 +10,14 @@
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_console">Console</string>
+    <string name="menu_settings">Settings</string>
+    
+    <!-- Settings Strings -->
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_summary">Choose light or dark theme</string>
+    <string name="settings_syntax_title">Syntax Highlighting</string>
+    <string name="settings_syntax_summary">Customize editor colors</string>
+    <string name="settings_category_appearance">Appearance</string>
+    <string name="settings_category_editor">Editor</string>
 </resources>

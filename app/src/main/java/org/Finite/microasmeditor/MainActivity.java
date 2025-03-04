@@ -16,12 +16,15 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import org.Finite.microasmeditor.databinding.ActivityMainBinding;
+import org.Finite.microasmeditor.ui.console.ConsoleManager;
 import org.Finite.microasmeditor.ui.home.HomeFragment;
 import android.widget.Toast;
 import java.io.*;
 import org.finite.*;
 import org.finite.Common.common;
 import android.util.Log;
+import org.Finite.microasmeditor.ui.editor.EditorManager;
+
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -37,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
+        
+        // Add debug console setup here
+        setupDebugConsole();
         
         // Setup file launchers
         setupFileLaunchers();
@@ -55,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
-        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow)
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home, R.id.nav_gallery)
                 .setOpenableLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
@@ -92,6 +98,10 @@ public class MainActivity extends AppCompatActivity {
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
             }
+            
+            String filename = getFilenameFromUri(uri);
+            EditorManager.getInstance().createFile(filename, content.toString());
+            
             HomeFragment homeFragment = getCurrentHomeFragment();
             if (homeFragment != null) {
                 homeFragment.setText(content.toString());
@@ -102,12 +112,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private String getFilenameFromUri(Uri uri) {
+        String filename = uri.getLastPathSegment();
+        if (filename == null) {
+            filename = "untitled";
+        }
+        return filename;
+    }
+
     private void writeFile(Uri uri) {
         try {
             OutputStream outputStream = getContentResolver().openOutputStream(uri);
-            HomeFragment homeFragment = getCurrentHomeFragment();
-            if (homeFragment != null && outputStream != null) {
-                outputStream.write(homeFragment.getText().getBytes());
+            if (outputStream != null) {
+                String content = EditorManager.getInstance().getContent();
+                outputStream.write(content.getBytes());
                 outputStream.close();
                 Toast.makeText(this, "File saved successfully", Toast.LENGTH_SHORT).show();
             }
@@ -135,45 +153,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void runCode() throws IOException {
-        HomeFragment homeFragment = getCurrentHomeFragment();
-        if (homeFragment != null) {
-            String code = homeFragment.getText();
-            if (code != null && !code.isEmpty()) {
+        String code = EditorManager.getInstance().getContent();
+        if (code != null && !code.isEmpty()) {
+            Toast.makeText(this, "Running code: " + code.substring(0, Math.min(20, code.length())) + "...", 
+                         Toast.LENGTH_SHORT).show();
+            common.exitOnHLT = false;
+            File stdout = common.WrapStdoutToFile();
 
-                Toast.makeText(this, "Running code: " + code.substring(0, Math.min(20, code.length())) + "...", 
-                             Toast.LENGTH_SHORT).show();
-                common.exitOnHLT = false;
-                File stdout = common.WrapStdoutToFile(); // use this later
-
-                // get the current open file
-                String content = homeFragment.getText();
-                File tempfile = File.createTempFile("temp", ".asm");
-                FileWriter writer = new FileWriter(tempfile);
-                writer.write(content);
-                writer.close();
-                String tempfilename = tempfile.getAbsolutePath();
-
-                interp.runFile(tempfilename); // hmmm this thing sucks
-                // spit out the contents of the stdout over the debugger
-                // delete the temp file
-                //tempfile.delete();
-
-                try {
-                    BufferedReader reader = new BufferedReader(new FileReader(stdout));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        Log.d("MASMOUTPUT", line);
-                    }
-                }
-                catch (IOException e) {
-                    Toast.makeText(this, "Error reading stdout: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-                finally {
-                    common.UnwrapStdout();
-                }
-            } else {
-                Toast.makeText(this, "No code to run", Toast.LENGTH_SHORT).show();
+            File tempfile = File.createTempFile("temp", ".masm");
+            FileWriter writer = new FileWriter(tempfile);
+            writer.write(code);
+            writer.close();
+            String tempfilename = tempfile.getAbsolutePath();
+            try {
+                interp.runFile(tempfilename);
             }
+            catch (Exception e) {
+                Toast.makeText(this, "Error running code: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                System.out.println("Exception: " + e.getMessage() + "\n");
+            }
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(stdout));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    ConsoleManager.getInstance().println(line);
+                    android.util.Log.d("MASMDebug",line
+                    );
+                }
+            } catch (IOException e) {
+                Toast.makeText(this, "Error reading stdout: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            } finally {
+                common.UnwrapStdout();
+                tempfile.delete();
+            }
+        } else {
+            Toast.makeText(this, "No code to run", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -205,6 +219,10 @@ public class MainActivity extends AppCompatActivity {
                 homeFragment.setText(newText);
             }
         }
+    }
+
+    private void setupDebugConsole() {
+
     }
 
     @Override

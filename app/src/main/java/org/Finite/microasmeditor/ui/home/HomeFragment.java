@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.Finite.microasmeditor.databinding.FragmentHomeBinding;
+import org.Finite.microasmeditor.ui.editor.EditorManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 public class HomeFragment extends Fragment {
 
@@ -27,39 +30,21 @@ public class HomeFragment extends Fragment {
 
         editor = binding.editor;
 
-
-
-        // Save text changes to ViewModel
-        editor.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-                homeViewModel.setText(s.toString());
+        // Sync with EditorManager
+        EditorManager.getInstance().getActiveContent().observe(getViewLifecycleOwner(), content -> {
+            if (!editor.getText().toString().equals(content)) {
+                editor.setText(content);
             }
         });
 
-        editor.setText("""
-                #include "stdio.io"
-                lbl main
-                    ;; move for file discriptor
-                    mov RAX 1
-                    ;; set the location in memory for printf
-                    mov RBX 100
-                    db $100 "Hello, World!\\n"
-                    ;; call printf
-                    call #printf
-                    hlt
-                """);
-//        editor.setSelection(editor.getText().length());
-//
-//        homeViewModel.getText().observe(getViewLifecycleOwner(), text -> {
-//            editor.setText(text);
-//        });
+        // Update EditorManager when text changes
+        editor.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void afterTextChanged(Editable s) {
+                EditorManager.getInstance().setContent(s.toString());
+            }
+        });
 
         return root;
     }

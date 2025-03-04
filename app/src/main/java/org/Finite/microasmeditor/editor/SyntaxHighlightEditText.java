@@ -16,6 +16,7 @@ import android.widget.EditText;
 import androidx.core.content.ContextCompat;
 
 import org.Finite.microasmeditor.R;
+import org.Finite.microasmeditor.settings.SettingsManager;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,6 +61,13 @@ public class SyntaxHighlightEditText extends EditText {
                 highlightSyntax(s);
             }
         });
+
+        applySettings();
+        
+        // Listen for settings changes
+        SettingsManager.getInstance(context).registerOnSharedPreferenceChangeListener(
+            (prefs, key) -> applySettings()
+        );
     }
 
     @Override
@@ -104,5 +112,19 @@ public class SyntaxHighlightEditText extends EditText {
                             matcher.start(), matcher.end(), 
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+    }
+
+    private void applySettings() {
+        SettingsManager settings = SettingsManager.getInstance(getContext());
+        setTextSize(settings.getFontSize());
+        
+        // Show/hide line numbers
+        if (!settings.showLineNumbers()) {
+            setPadding(getPaddingRight(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
+        } else {
+            setPadding(lineNumberPadding, getPaddingTop(), getPaddingRight(), getPaddingBottom());
+        }
+        
+        invalidate(); // Redraw the view
     }
 }
