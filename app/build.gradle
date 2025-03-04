@@ -52,6 +52,9 @@ dependencies {
         exclude group: 'ch.qos.logback', module: 'logback-core' // Exclude logback-core
     }
     implementation 'com.beust:jcommander:1.82'  // Only include one version
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'ch.qos.logback:logback-core:1.2.11'
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

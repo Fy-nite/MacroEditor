@@ -21,7 +21,7 @@ import android.widget.Toast;
 import java.io.*;
 import org.finite.*;
 import org.finite.Common.common;
-
+import android.util.Log;
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -43,7 +43,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup button click listeners
         binding.appBarMain.btnSave.setOnClickListener(view -> saveFile());
-        binding.appBarMain.btnRun.setOnClickListener(view -> runCode());
+        binding.appBarMain.btnRun.setOnClickListener(view -> {
+            try {
+                runCode();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         binding.appBarMain.btnInsertString.setOnClickListener(view -> insertString());
         binding.appBarMain.btnInsertLabel.setOnClickListener(view -> insertLabel());
 
@@ -128,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         saveFileLauncher.launch("document.txt");
     }
 
-    private void runCode() {
+    private void runCode() throws IOException {
         HomeFragment homeFragment = getCurrentHomeFragment();
         if (homeFragment != null) {
             String code = homeFragment.getText();
@@ -136,19 +142,27 @@ public class MainActivity extends AppCompatActivity {
 
                 Toast.makeText(this, "Running code: " + code.substring(0, Math.min(20, code.length())) + "...", 
                              Toast.LENGTH_SHORT).show();
-
+                common.exitOnHLT = false;
                 File stdout = common.WrapStdoutToFile(); // use this later
 
                 // get the current open file
                 String content = homeFragment.getText();
+                File tempfile = File.createTempFile("temp", ".asm");
+                FileWriter writer = new FileWriter(tempfile);
+                writer.write(content);
+                writer.close();
+                String tempfilename = tempfile.getAbsolutePath();
 
-                interp.runFile(content);
+                interp.runFile(tempfilename); // hmmm this thing sucks
                 // spit out the contents of the stdout over the debugger
+                // delete the temp file
+                //tempfile.delete();
+
                 try {
                     BufferedReader reader = new BufferedReader(new FileReader(stdout));
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        Toast.makeText(this, line, Toast.LENGTH_SHORT).show();
+                        Log.d("MASMOUTPUT", line);
                     }
                 }
                 catch (IOException e) {
