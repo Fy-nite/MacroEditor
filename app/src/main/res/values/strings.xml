@@ -20,4 +20,6 @@
     <string name="settings_syntax_summary">Customize editor colors</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="settings_category_editor">Editor</string>
+    <string name="consoleinput">standard in :3</string>
+    <string name="outputconsole">output of program will appear here</string>
 </resources>

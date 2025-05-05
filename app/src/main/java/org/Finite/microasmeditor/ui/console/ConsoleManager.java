@@ -25,7 +25,7 @@ public class ConsoleManager {
     public void println(String message) {
         String timestamp = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
         String formattedMessage = String.format("[%s] %s\n", timestamp, message);
-        contentBuilder.append(formattedMessage);
+        contentBuilder.append(message);
         consoleOutput.postValue(contentBuilder.toString());
     }
 

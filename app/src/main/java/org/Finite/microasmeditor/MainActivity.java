@@ -21,7 +21,7 @@ import org.Finite.microasmeditor.ui.home.HomeFragment;
 import android.widget.Toast;
 import java.io.*;
 import org.finite.*;
-import org.finite.Common.common;
+import org.finite.Common.*;
 import android.util.Log;
 import org.Finite.microasmeditor.ui.editor.EditorManager;
 
